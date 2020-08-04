@@ -101,8 +101,6 @@ class HashTable:
         """
         # Your code here
         # Get the index at which we will be going to insert the value
-        # index = self.hash_index(key)
-        # self.arr[index] = value
         index = self.hash_index(key)
         # Check if the desired index is empty or not
         if self.arr[index] is None:
@@ -111,20 +109,19 @@ class HashTable:
             # If the index is not empty we have to iterate until we find that .next is None
             curr = self.arr[index]
 
-            while curr.next is not None:
+            while curr.next:
                 # Check if the value has changed
-                if curr.value != value and self.arr[index].key == key:
+                if curr.value != value and curr.key == key:
                     print("Rewriting value", value)
                     curr.value = value
                     return
                 else:
-                    curr = curr.next
-                    
-            if curr.value != value and self.arr[index].key == key:
-                print("Rewriting value",value)
+                    curr = curr.next          
+            if curr.value != value and curr.key == key:
+                print("Rewriting value", value)
                 curr.value = value
             else:
-                print("Writing value", value)
+                print("Writing value at", index, value)
                 curr.next = HashTableEntry(key,value)
 
 
@@ -138,7 +135,33 @@ class HashTable:
         """
         # Your code here
         index = self.hash_index(key)
-        self.arr[index] = None
+        # Check if the desired index is empty or not
+        if self.arr[index] is None:
+            return None
+        elif self.arr[index].key == key:            
+            # Check if there is a linked list
+            if self.arr[index].next is not None:
+                self.arr[index] = self.arr[index].next
+            else:
+                self.arr[index] = None
+        else:
+            # If the index is not empty we have to iterate until we find that .next is None
+            curr = self.arr[index]
+            prev = None
+            while curr.next:
+                # Check if the value has changed
+                if curr.key == key:
+                    prev = curr.next
+                    curr = None
+                    return
+                else:
+                    prev = curr
+                    curr = curr.next          
+            if curr.key == key:
+                prev = curr.next
+                curr = None
+            else:
+                return None
 
 
     def get(self, key):
