@@ -22,6 +22,12 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
+        if capacity>MIN_CAPACITY:
+            self.capacity=capacity
+            self.arr = [None] * self.capacity
+        else:
+            self.capacity=MIN_CAPACITY
+            self.arr = [None] * self.capacity
 
 
     def get_num_slots(self):
@@ -35,6 +41,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return len(self.arr)
 
 
     def get_load_factor(self):
@@ -52,6 +59,12 @@ class HashTable:
 
         Implement this, and/or DJB2.
         """
+        hsh = 0x811c9dc5
+        fnv_32_prime = 0x01000193
+        for byte in key:
+            hsh = hsh ^ ord(byte)
+            hsh = (hsh*fnv_32_prime)%self.capacity
+        return hsh
 
         # Your code here
 
@@ -63,6 +76,11 @@ class HashTable:
         Implement this, and/or FNV-1.
         """
         # Your code here
+        hsh = 5381
+        for x in key:
+            hsh = (( hsh << 5) + hsh) + ord(x)
+    
+        return hsh & 0xFFFFFFFF
 
 
     def hash_index(self, key):
@@ -70,8 +88,8 @@ class HashTable:
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        return self.fnv1(key) 
+        # return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
@@ -82,6 +100,32 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # Get the index at which we will be going to insert the value
+        # index = self.hash_index(key)
+        # self.arr[index] = value
+        index = self.hash_index(key)
+        # Check if the desired index is empty or not
+        if self.arr[index] is None:
+            self.arr[index] = HashTableEntry(key,value)
+        else:
+            # If the index is not empty we have to iterate until we find that .next is None
+            curr = self.arr[index]
+
+            while curr.next is not None:
+                # Check if the value has changed
+                if curr.value != value and self.arr[index].key == key:
+                    print("Rewriting value", value)
+                    curr.value = value
+                    return
+                else:
+                    curr = curr.next
+                    
+            if curr.value != value and self.arr[index].key == key:
+                print("Rewriting value",value)
+                curr.value = value
+            else:
+                print("Writing value", value)
+                curr.next = HashTableEntry(key,value)
 
 
     def delete(self, key):
@@ -93,6 +137,8 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
+        self.arr[index] = None
 
 
     def get(self, key):
@@ -104,8 +150,17 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
-
+        index = self.hash_index(key)
+        if self.arr[index] is None:
+            return None
+        curr = self.arr[index]
+        while curr is not None:
+            if curr.key == key:
+                return curr.value
+            else:
+                curr = curr.next
+        return None
+        
     def resize(self, new_capacity):
         """
         Changes the capacity of the hash table and
@@ -140,11 +195,11 @@ if __name__ == "__main__":
         print(ht.get(f"line_{i}"))
 
     # Test resizing
-    old_capacity = ht.get_num_slots()
-    ht.resize(ht.capacity * 2)
-    new_capacity = ht.get_num_slots()
+    # old_capacity = ht.get_num_slots()
+    # ht.resize(ht.capacity * 2)
+    # new_capacity = ht.get_num_slots()
 
-    print(f"\nResized from {old_capacity} to {new_capacity}.\n")
+    # print(f"\nResized from {old_capacity} to {new_capacity}.\n")
 
     # Test if data intact after resizing
     for i in range(1, 13):
