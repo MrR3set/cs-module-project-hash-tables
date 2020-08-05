@@ -24,10 +24,10 @@ class HashTable:
         # Your code here
         if capacity>MIN_CAPACITY:
             self.capacity=capacity
-            self.arr = [None] * self.capacity
         else:
             self.capacity=MIN_CAPACITY
-            self.arr = [None] * self.capacity
+        self.arr = [None] * self.capacity
+        self.size = 0
 
 
     def get_num_slots(self):
@@ -51,6 +51,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return len(self.arr)/self.get_num_slots()
 
 
     def fnv1(self, key):
@@ -104,26 +105,22 @@ class HashTable:
         index = self.hash_index(key)
         # Check if the desired index is empty or not
         if self.arr[index] is None:
+            self.size+=1
             self.arr[index] = HashTableEntry(key,value)
         else:
             # If the index is not empty we have to iterate until we find that .next is None
             curr = self.arr[index]
-
-            while curr.next:
+            while curr:
                 # Check if the value has changed
                 if curr.value != value and curr.key == key:
-                    print("Rewriting value", value)
                     curr.value = value
                     return
+                elif curr.next is None:
+                    curr.next = HashTableEntry(key,value)
+                    self.size+=1
+                    return
                 else:
-                    curr = curr.next          
-            if curr.value != value and curr.key == key:
-                print("Rewriting value", value)
-                curr.value = value
-            else:
-                print("Writing value at", index, value)
-                curr.next = HashTableEntry(key,value)
-
+                    curr = curr.next  
 
     def delete(self, key):
         """
@@ -136,33 +133,19 @@ class HashTable:
         # Your code here
         index = self.hash_index(key)
         # Check if the desired index is empty or not
-        if self.arr[index] is None:
-            return None
-        elif self.arr[index].key == key:            
-            # Check if there is a linked list
-            if self.arr[index].next is not None:
-                self.arr[index] = self.arr[index].next
-            else:
-                self.arr[index] = None
-        else:
-            # If the index is not empty we have to iterate until we find that .next is None
-            curr = self.arr[index]
-            prev = None
-            while curr.next:
-                # Check if the value has changed
-                if curr.key == key:
-                    prev = curr.next
-                    curr = None
-                    return
-                else:
-                    prev = curr
-                    curr = curr.next          
-            if curr.key == key:
-                prev = curr.next
-                curr = None
-            else:
-                return None
+        curr = self.arr[index]
+        prev = None 
 
+        while curr and curr.key != key:
+            curr=curr.next
+        if curr is None:
+            return None 
+        # check if curr is head
+        if prev is None:
+            self.arr[index] = curr.next
+        else:
+            prev.next = curr.next
+        self.size-=1
 
     def get(self, key):
         """
@@ -192,7 +175,18 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        if self.get_load_factor()>0.7:
+            prevArr = self.arr
+            self.capacity = new_capacity
+            self.arr = [None]*self.capacity
 
+            for pHash in prevArr:
+                while pHash.next:
+                    self.put(pHash.key,pHash.value)
+                    pHash = pHash.next
+                self.put(pHash.key,pHash.value)
+            # Check the next element if the linked list
+            
 
 
 if __name__ == "__main__":
